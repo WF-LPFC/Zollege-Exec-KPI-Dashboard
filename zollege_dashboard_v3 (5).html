@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zollege KPI Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --navy: #071e3d; --navy2: #0d2d52; --navy3: #142f52;
+  --blue: #1565C0; --blue2: #1976D2;
+  --sky: #29B6F6; --sky-pale: #e3f2fd; --sky-mid: #b3e0f9;
+  --white: #ffffff; --off: #f5f8fc; --surface: #eef4fb;
+  --border: rgba(21,101,192,0.13); --border2: rgba(21,101,192,0.22);
+  --text: #071e3d; --muted: #607d9a; --muted2: #8fa8c0;
+  --green: #1b5e20; --green-bg: #e8f5e9; --green-mid: #2e7d32; --green-light: #a5d6a7;
+  --amber: #bf360c; --amber-bg: #fff3e0; --amber-mid: #e65100; --amber-light: #ffcc80;
+  --red: #b71c1c; --red-bg: #ffebee; --red-mid: #c62828; --red-light: #ef9a9a;
+  --shadow: 0 2px 10px rgba(7,30,61,0.07); --shadow-lg: 0 6px 28px rgba(7,30,61,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Barlow', sans-serif; background: #edf2f9; color: var(--text); min-height: 100vh; }
+
+/* ── STICKY HEADER ── */
+.header { background: var(--navy); padding: 0 1.75rem; display: flex; align-items: center; justify-content: space-between; height: 58px; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 18px rgba(0,0,0,0.28); }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo { font-family: 'Barlow Condensed', sans-serif; font-size: 21px; font-weight: 700; letter-spacing: 3px; color: #fff; }
+.hdiv { width: 1px; height: 22px; background: rgba(255,255,255,0.18); }
+.htitle { font-size: 12px; color: rgba(255,255,255,0.55); letter-spacing: 0.4px; }
+.hright { display: flex; align-items: center; gap: 12px; }
+.hperiod { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 1px; color: var(--sky); }
+.hupdated { font-size: 10px; color: rgba(255,255,255,0.35); }
+
+/* ── HEALTH STRIP ── */
+.health-strip { background: var(--navy2); border-bottom: 1px solid rgba(255,255,255,0.07); padding: 8px 1.75rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; position: sticky; top: 58px; z-index: 190; }
+.hs-label { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-right: 4px; white-space: nowrap; }
+.hs-pill { display: inline-flex; align-items: center; gap: 4px; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.4px; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.hs-pill.green { background: rgba(46,125,50,0.25); color: #81c784; border: 1px solid rgba(46,125,50,0.4); }
+.hs-pill.amber { background: rgba(230,81,0,0.25); color: #ffb74d; border: 1px solid rgba(230,81,0,0.4); }
+.hs-pill.red   { background: rgba(198,40,40,0.25); color: #ef9a9a; border: 1px solid rgba(198,40,40,0.4); }
+.hs-pill.none  { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.35); border: 1px solid rgba(255,255,255,0.1); }
+.hs-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.hs-pill.green .hs-dot { background: #81c784; }
+.hs-pill.amber .hs-dot { background: #ffb74d; }
+.hs-pill.red   .hs-dot { background: #ef9a9a; }
+
+/* ── MAIN ── */
+.main { padding: 1.25rem 1.75rem 3rem; max-width: 1440px; margin: 0 auto; }
+
+/* ── CONTROLS ── */
+.controls-bar { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.ctrl-group { display: flex; align-items: center; gap: 5px; }
+.ctrl-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted2); white-space: nowrap; }
+.vdiv { width: 1px; height: 26px; background: var(--border2); }
+.btn-row { display: flex; gap: 3px; flex-wrap: wrap; }
+.pbtn { font-family: 'Barlow', sans-serif; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.13s; white-space: nowrap; }
+.pbtn:hover { background: var(--sky-pale); color: var(--blue); border-color: var(--blue); }
+.pbtn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+.mtoggle { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.4px; padding: 4px 9px; border-radius: 5px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.13s; position: relative; }
+.mtoggle:hover { background: var(--sky-pale); color: var(--blue); border-color: var(--blue); }
+.mtoggle.sel { background: var(--blue); color: #fff; border-color: var(--blue); }
+.mtoggle.latest::after { content: '●'; position: absolute; top: -3px; right: -3px; font-size: 6px; color: var(--sky); }
+
+/* ── ROLLING 3-MO BAND ── */
+.r3-band { background: var(--navy); border-radius: 10px; padding: 1rem 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow-lg); }
+.r3-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.85rem; }
+.r3-title { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+.r3-range { font-size: 11px; color: var(--sky); font-weight: 500; }
+.r3-grid { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 0; }
+.r3-item { text-align: center; padding: 0 0.75rem; border-right: 1px solid rgba(255,255,255,0.09); }
+.r3-item:last-child { border-right: none; }
+.r3-lbl { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+.r3-val { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; color: #fff; line-height: 1; }
+.r3-vs { font-size: 10px; margin-top: 3px; font-weight: 600; }
+.r3-vs.up { color: #81c784; }
+.r3-vs.dn { color: #ef9a9a; }
+.r3-vs.fl { color: rgba(255,255,255,0.35); }
+.r3-sub { font-size: 9px; color: rgba(255,255,255,0.3); margin-top: 1px; }
+
+/* ── SECTION DIVIDERS ── */
+.sec { display: flex; align-items: center; gap: 10px; margin: 1.25rem 0 0.7rem; }
+.sec-line { flex: 1; height: 1px; background: var(--border2); }
+.sec-title { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted2); white-space: nowrap; }
+
+/* ── KPI CARDS WITH SPARKLINE ── */
+.kgrid { display: grid; gap: 9px; }
+.g4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+.g8 { grid-template-columns: repeat(8, minmax(0,1fr)); }
+
+.kcard { background: var(--white); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px 10px; position: relative; overflow: hidden; box-shadow: var(--shadow); transition: transform 0.13s, box-shadow 0.13s; }
+.kcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.kcard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 9px 9px 0 0; }
+.kcard.cg::before { background: var(--green-mid); }
+.kcard.ca::before { background: var(--amber-mid); }
+.kcard.cr::before { background: var(--red-mid); }
+.kcard.cb::before { background: var(--blue); }
+
+.kcard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+.klabel { font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.kvalue { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 700; line-height: 1; color: var(--navy); letter-spacing: -0.5px; }
+.sparkline-wrap { width: 56px; height: 32px; flex-shrink: 0; margin-top: 2px; }
+.kdelta { font-size: 10px; font-weight: 600; margin-top: 5px; }
+.kdelta.up { color: var(--green-mid); }
+.kdelta.dn { color: var(--red-mid); }
+.kdelta.fl { color: var(--muted); }
+.kbud { font-size: 9px; color: var(--muted2); margin-top: 2px; }
+.kprog { height: 3px; background: #e4edf7; border-radius: 2px; margin-top: 7px; }
+.kprog-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+.kprog-fill.cg { background: var(--green-mid); }
+.kprog-fill.ca { background: var(--amber-mid); }
+.kprog-fill.cr { background: var(--red-mid); }
+.kprog-fill.cb { background: var(--blue); }
+
+/* ── FUNNEL VIZ ── */
+.funnel-row { display: grid; grid-template-columns: 1fr 1.8fr; gap: 12px; }
+.funnel-card { background: var(--white); border: 1px solid var(--border); border-radius: 9px; padding: 16px 20px; box-shadow: var(--shadow); }
+.funnel-title { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--navy); margin-bottom: 14px; }
+.funnel-stage { margin-bottom: 10px; }
+.funnel-stage-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.funnel-stage-name { font-size: 11px; font-weight: 600; color: var(--muted); }
+.funnel-stage-nums { display: flex; align-items: baseline; gap: 6px; }
+.funnel-stage-val { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--navy); }
+.funnel-stage-bud { font-size: 10px; color: var(--muted2); }
+.funnel-bar-track { height: 10px; background: #e4edf7; border-radius: 5px; overflow: hidden; }
+.funnel-bar-fill { height: 100%; border-radius: 5px; transition: width 0.6s ease; }
+.funnel-conv { display: flex; align-items: center; gap: 6px; margin: 6px 0 10px 0; padding-left: 4px; }
+.funnel-conv-arrow { font-size: 10px; color: var(--muted2); }
+.funnel-conv-label { font-size: 10px; color: var(--muted); }
+.funnel-conv-val { font-size: 11px; font-weight: 700; color: var(--blue); }
+.funnel-conv-bud { font-size: 10px; color: var(--muted2); }
+
+/* ── ETC / COMPLETION CALLOUT ── */
+.outcome-callout { background: var(--white); border: 1px solid var(--border); border-radius: 9px; padding: 16px 20px; box-shadow: var(--shadow); }
+.oc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.oc-title { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--navy); }
+.oc-alert { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+.oc-alert.warn { background: var(--amber-bg); color: var(--amber-mid); }
+.oc-alert.ok { background: var(--green-bg); color: var(--green-mid); }
+.oc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.oc-metric { padding: 12px; background: var(--off); border-radius: 7px; border: 1px solid var(--border); }
+.oc-m-label { font-size: 9px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.oc-m-val { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 700; line-height: 1; }
+.oc-m-val.warn { color: var(--amber-mid); }
+.oc-m-val.ok { color: var(--green-mid); }
+.oc-m-val.bad { color: var(--red-mid); }
+.oc-m-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: 10px; color: var(--muted); }
+.oc-m-row span { font-weight: 600; }
+.oc-trend { margin-top: 10px; }
+.oc-trend-label { font-size: 9px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--muted2); margin-bottom: 5px; }
+.oc-sparkbig { width: 100%; height: 40px; }
+
+/* ── CHART CARDS ── */
+.ccards { display: grid; gap: 10px; }
+.cc2 { grid-template-columns: 1fr 1fr; }
+.cc3 { grid-template-columns: 1fr 1fr 1fr; }
+.ccard { background: var(--white); border: 1px solid var(--border); border-radius: 9px; padding: 14px 16px; box-shadow: var(--shadow); }
+.ccard-title { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--navy); margin-bottom: 3px; }
+.ccard-sub { font-size: 10px; color: var(--muted2); margin-bottom: 10px; }
+.clegend { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.leg { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--muted); }
+.leg-sq { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── TABLE ── */
+.twrap { background: var(--white); border: 1px solid var(--border); border-radius: 9px; overflow: hidden; box-shadow: var(--shadow); }
+.tscroll { overflow-x: auto; }
+table.sc { width: 100%; border-collapse: collapse; font-size: 11px; }
+.sc thead tr:first-child th { background: var(--navy); color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 7px 10px; text-align: center; white-space: nowrap; }
+.sc thead tr:first-child th:first-child { text-align: left; }
+.sc tbody td { padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--text); white-space: nowrap; text-align: right; }
+.sc tbody td:first-child { text-align: left; font-weight: 600; color: var(--navy); background: var(--off); font-size: 10px; min-width: 160px; }
+.sc tbody tr:last-child td { border-bottom: none; }
+.sec-row td { background: #e8eef7 !important; color: var(--navy2) !important; font-family: 'Barlow Condensed', sans-serif !important; font-size: 9px !important; font-weight: 700 !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; text-align: left !important; padding: 5px 10px !important; }
+/* Color-coded cells */
+.tc-g { background: #f1fbf2; }
+.tc-a { background: #fffbf2; }
+.tc-r { background: #fff5f5; }
+.tc-g td:first-child, .tc-a td:first-child, .tc-r td:first-child { background: var(--off) !important; }
+.badge-g { background: var(--green-bg); color: var(--green); font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 10px; display: inline-block; }
+.badge-a { background: var(--amber-bg); color: var(--amber-mid); font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 10px; display: inline-block; }
+.badge-r { background: var(--red-bg); color: var(--red-mid); font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 10px; display: inline-block; }
+.cell-num { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 600; color: var(--navy); display: block; }
+.cell-vs { font-size: 8px; font-weight: 600; display: block; margin-top: 1px; }
+.cell-vs.up { color: var(--green-mid); }
+.cell-vs.dn { color: var(--red-mid); }
+.cell-na { color: #ccc; font-style: italic; font-size: 10px; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.anim { animation: fadeUp 0.25s ease both; }
+
+@media (max-width:1100px) { .r3-grid{grid-template-columns:repeat(3,1fr);} .g8{grid-template-columns:repeat(4,1fr);} .cc3{grid-template-columns:1fr 1fr;} .funnel-row{grid-template-columns:1fr;} }
+@media (max-width:800px)  { .main{padding:1rem;} .g4{grid-template-columns:1fr 1fr;} .cc2,.cc3{grid-template-columns:1fr;} .r3-grid{grid-template-columns:repeat(2,1fr);} .oc-grid{grid-template-columns:1fr;} }
+@media (max-width:500px)  { .g4,.g8{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <span class="logo">ZOLLEGE</span>
+    <span class="hdiv"></span>
+    <span class="htitle">KPI Performance Dashboard</span>
+  </div>
+  <div class="hright">
+    <span class="hperiod" id="hperiod">Feb 2026</span>
+    <span class="hupdated">May 2025 – Feb 2026</span>
+  </div>
+</div>
+
+<!-- Health Score Strip -->
+<div class="health-strip" id="healthStrip">
+  <span class="hs-label">Health</span>
+</div>
+
+<div class="main">
+  <!-- Controls -->
+  <div class="controls-bar">
+    <div class="ctrl-group">
+      <span class="ctrl-label">Preset</span>
+      <div class="btn-row">
+        <button class="pbtn" onclick="setPreset('latest',this)">Latest</button>
+        <button class="pbtn" onclick="setPreset('q1fy26',this)">Q1 FY26</button>
+        <button class="pbtn" onclick="setPreset('h2fy25',this)">H2 FY25</button>
+        <button class="pbtn" onclick="setPreset('ytd',this)">YTD FY26</button>
+        <button class="pbtn active" onclick="setPreset('all',this)">All</button>
+      </div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Months</span>
+      <div class="btn-row" id="mtoggles"></div>
+    </div>
+    <div class="vdiv"></div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">View</span>
+      <div class="btn-row">
+        <button class="pbtn active" id="vSingle" onclick="setView('single')">Single</button>
+        <button class="pbtn" id="vTrend"  onclick="setView('trend')">Trends</button>
+        <button class="pbtn" id="vTable"  onclick="setView('table')">Table</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dash"></div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const MONTHS = ['May 2025','Jun 2025','Jul 2025','Aug 2025','Sep 2025','Oct 2025','Nov 2025','Dec 2025','Jan 2026','Feb 2026'];
+
+// D[month][metric] = {a:actual, b:budget, py:priorYear}
+const D = {
+  'May 2025':{ leads:{a:7654,b:5470,py:null}, lte:{a:7.0,b:11.6,py:null}, enrollments:{a:521,b:400,py:null}, bookings:{a:2003,b:2549,py:null}, asp:{a:3724,b:4001,py:null}, efs:{a:585,b:555,py:null}, ets:{a:84.4,b:88.6,py:null}, starts:{a:494,b:492,py:null}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:868,b:2019,py:null}, classStarts:{a:46,b:112,py:null}, studPerClass:{a:10.7,b:4.4,py:null}, capUtil:{a:43.6,b:24.0,py:null}, completion:{a:89.1,b:88.1,py:null}, etc:{a:75.3,b:80.2,py:null} },
+  'Jun 2025':{ leads:{a:6475,b:4820,py:null}, lte:{a:8.5,b:12.8,py:null}, enrollments:{a:550,b:616,py:null}, bookings:{a:2050,b:2401,py:null}, asp:{a:3728,b:3897,py:null}, efs:{a:835,b:758,py:null}, ets:{a:91.4,b:88.0,py:null}, starts:{a:763,b:667,py:null}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:1668,b:1673,py:null}, classStarts:{a:90,b:93,py:null}, studPerClass:{a:8.5,b:7.2,py:null}, capUtil:{a:45.1,b:39.9,py:null}, completion:{a:85.8,b:90.6,py:null}, etc:{a:80.9,b:79.7,py:null} },
+  'Jul 2025':{ leads:{a:6690,b:5697,py:6301}, lte:{a:14.0,b:12.8,py:10.6}, enrollments:{a:937,b:731,py:670}, bookings:{a:3510,b:2909,py:2487}, asp:{a:3746,b:3980,py:3712}, efs:{a:759,b:512,py:445}, ets:{a:90.1,b:89.3,py:91.9}, starts:{a:684,b:457,py:409}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:1449,b:1628,py:786}, classStarts:{a:80,b:94,py:43}, studPerClass:{a:8.6,b:4.9,py:9.5}, capUtil:{a:47.2,b:28.1,py:52.0}, completion:{a:88.6,b:89.3,py:93.0}, etc:{a:77.4,b:80.8,py:81.6} },
+  'Aug 2025':{ leads:{a:6273,b:5999,py:null}, lte:{a:11.4,b:13.8,py:null}, enrollments:{a:714,b:827,py:null}, bookings:{a:3279,b:3965,py:null}, asp:{a:3705,b:3705,py:null}, efs:{a:649,b:738,py:null}, ets:{a:92.3,b:89.0,py:null}, starts:{a:599,b:657,py:null}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:984,b:1558,py:null}, classStarts:{a:53,b:94,py:null}, studPerClass:{a:13.3,b:7.0,py:null}, capUtil:{a:60.9,b:42.3,py:null}, completion:{a:88.6,b:86.6,py:null}, etc:{a:78.8,b:80.5,py:null} },
+  'Sep 2025':{ leads:{a:7185,b:5026,py:null}, lte:{a:7.3,b:13.4,py:null}, enrollments:{a:524,b:673,py:null}, bookings:{a:2628,b:2628,py:null}, asp:{a:3656,b:3904,py:null}, efs:{a:873,b:941,py:null}, ets:{a:86.7,b:88.8,py:null}, starts:{a:802,b:835,py:null}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:1584,b:2819,py:null}, classStarts:{a:87,b:94,py:null}, studPerClass:{a:8.9,b:8.9,py:null}, capUtil:{a:50.8,b:29.6,py:null}, completion:{a:85.8,b:90.6,py:null}, etc:{a:78.8,b:80.4,py:null} },
+  'Oct 2025':{ leads:{a:5622,b:5114,py:null}, lte:{a:8.6,b:12.5,py:null}, enrollments:{a:482,b:639,py:null}, bookings:{a:1821,b:2505,py:null}, asp:{a:3777,b:3921,py:null}, efs:{a:504,b:815,py:null}, ets:{a:89.1,b:88.0,py:null}, starts:{a:449,b:456,py:null}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:1038,b:1774,py:null}, classStarts:{a:61,b:94,py:null}, studPerClass:{a:7.4,b:4.9,py:null}, capUtil:{a:43.3,b:25.7,py:null}, completion:{a:88.1,b:90.6,py:null}, etc:{a:75.5,b:79.7,py:null} },
+  'Nov 2025':{ leads:{a:4470,b:3869,py:null}, lte:{a:10.0,b:12.0,py:null}, enrollments:{a:449,b:424,py:null}, bookings:{a:1624,b:1841,py:null}, asp:{a:3617,b:3977,py:null}, efs:{a:370,b:457,py:null}, ets:{a:91.1,b:87.5,py:null}, starts:{a:337,b:400,py:null}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:775,b:1429,py:null}, classStarts:{a:41,b:81,py:null}, studPerClass:{a:8.2,b:4.9,py:null}, capUtil:{a:43.5,b:28.0,py:null}, completion:{a:86.8,b:90.2,py:null}, etc:{a:79.0,b:78.8,py:null} },
+  'Dec 2025':{ leads:{a:4850,b:3877,py:null}, lte:{a:9.6,b:11.6,py:null}, enrollments:{a:468,b:450,py:null}, bookings:{a:1742,b:1779,py:null}, asp:{a:3722,b:3953,py:null}, efs:{a:304,b:535,py:null}, ets:{a:84.9,b:86.6,py:null}, starts:{a:278,b:462,py:null}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:807,b:1279,py:null}, classStarts:{a:46,b:73,py:null}, studPerClass:{a:8.3,b:6.9,py:null}, capUtil:{a:34.4,b:36.1,py:null}, completion:{a:88.8,b:90.9,py:null}, etc:{a:81.2,b:78.5,py:null} },
+  'Jan 2026':{ leads:{a:11702,b:10837,py:7280}, lte:{a:9.9,b:10.4,py:10.2}, enrollments:{a:1163,b:1123,py:739}, bookings:{a:4464,b:3676,py:2822}, asp:{a:3839,b:3273,py:3693}, efs:{a:1597,b:1107,py:708}, ets:{a:86.8,b:90.6,py:84.9}, starts:{a:1386,b:1003,py:601}, activeSchools:{a:222,b:200,py:129}, classWeeks:{a:5,b:5,py:4}, capacity:{a:2859,b:null,py:null}, classStarts:{a:158,b:172,py:87}, studPerClass:{a:6.9,b:5.8,py:6.9}, capUtil:{a:48.5,b:44.4,py:39.0}, completion:{a:84.8,b:89.8,py:82.8}, etc:{a:73.6,b:81.4,py:70.3} },
+  'Feb 2026':{ leads:{a:9210,b:9527,py:5555}, lte:{a:13.5,b:10.4,py:13.5}, enrollments:{a:1067,b:990,py:749}, bookings:{a:4117,b:3189,py:2898}, asp:{a:3858,b:3221,py:3869}, efs:{a:875,b:620,py:630}, ets:{a:86.2,b:90.6,py:90.0}, starts:{a:754,b:560,py:568}, activeSchools:{a:237,b:211,py:129}, classWeeks:{a:4,b:4,py:4}, capacity:{a:237,b:211,py:129}, classStarts:{a:87,b:93,py:70}, studPerClass:{a:8.7,b:6.0,py:8.1}, capUtil:{a:48.8,b:48.0,py:44.0}, completion:{a:84.8,b:89.8,py:78.9}, etc:{a:73.1,b:81.2,py:71.1} }
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let sel = [...MONTHS];
+let view = 'single';
+let charts = [];
+
+// ─── FORMATTERS ──────────────────────────────────────────────────────────────
+const fN  = (v,d=0) => v==null ? '—' : d>0 ? (+v).toFixed(d) : Math.round(v).toLocaleString();
+const fP  = v => v==null ? '—' : (+v).toFixed(1)+'%';
+const fD  = v => v==null ? '—' : '$'+Math.round(v).toLocaleString();
+const fK  = v => v==null ? '—' : v>=1000 ? '$'+(v/1000).toFixed(1)+'M' : '$'+Math.round(v)+'k';
+const fShort = v => v==null ? '—' : v>=1000000 ? (v/1000000).toFixed(2)+'M' : v>=1000 ? (v/1000).toFixed(1)+'k' : Math.round(v).toLocaleString();
+
+function pctVsBud(a,b){ return (b && a!=null) ? Math.round((a/b)*100) : null; }
+function colClass(a,b,hi=true){ if(!b||a==null) return 'cb'; const r=a/b; return hi?(r>=0.95?'cg':r>=0.80?'ca':'cr'):(r<=1.05?'cg':r<=1.20?'ca':'cr'); }
+function colStr(a,b,hi=true){ if(!b||a==null) return 'none'; const r=a/b; return hi?(r>=0.95?'green':r>=0.80?'amber':'red'):(r<=1.05?'green':r<=1.20?'amber':'red'); }
+function dirLabel(a,b,hi=true){ if(!b||a==null) return 'fl'; return hi?(a>=b?'up':'dn'):(a<=b?'up':'dn'); }
+function vsText(a,b,fmt){ if(!b||a==null) return ''; const d=a-b; const s=d>=0?'+':''; return s+fmt(d); }
+
+// ─── SPARKLINE (canvas) ───────────────────────────────────────────────────────
+function drawSparkline(canvas, data, color) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.offsetWidth || 56;
+  const h = canvas.offsetHeight || 32;
+  canvas.width = w * 2; canvas.height = h * 2; ctx.scale(2,2);
+  const vals = data.filter(v => v!=null);
+  if (vals.length < 2) return;
+  const mn = Math.min(...vals), mx = Math.max(...vals), rng = mx-mn || 1;
+  const pts = vals.map((v,i) => ({ x: (i/(vals.length-1))*(w-4)+2, y: h-4 - ((v-mn)/rng)*(h-8) }));
+  ctx.clearRect(0,0,w,h);
+  ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+  pts.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.stroke();
+  // last dot
+  const last = pts[pts.length-1];
+  ctx.beginPath(); ctx.arc(last.x, last.y, 2.5, 0, Math.PI*2);
+  ctx.fillStyle = color; ctx.fill();
+}
+
+function sparkColor(cc){ return cc==='cg'?'#2e7d32':cc==='ca'?'#e65100':cc==='cr'?'#c62828':'#1565C0'; }
+
+// ─── HEALTH STRIP ─────────────────────────────────────────────────────────────
+const HEALTH_METRICS = [
+  {key:'leads',label:'Leads',hi:true,fmt:fN},
+  {key:'enrollments',label:'Enroll',hi:true,fmt:fN},
+  {key:'starts',label:'Starts',hi:true,fmt:fN},
+  {key:'bookings',label:'Bookings',hi:true,fmt:fK},
+  {key:'lte',label:'LTE%',hi:true,fmt:fP},
+  {key:'ets',label:'ETS%',hi:true,fmt:fP},
+  {key:'completion',label:'Completion',hi:true,fmt:fP},
+  {key:'etc',label:'ETC%',hi:true,fmt:fP},
+  {key:'capUtil',label:'Cap Util',hi:true,fmt:fP},
+];
+function buildHealthStrip(months){
+  const m = months[months.length-1];
+  const strip = document.getElementById('healthStrip');
+  let html = '<span class="hs-label">'+m+'</span>';
+  HEALTH_METRICS.forEach(({key,label,hi}) => {
+    const d = D[m][key]; if(!d) return;
+    const cs = colStr(d.a,d.b,hi);
+    const cls = cs==='none'?'none':cs;
+    const pct = pctVsBud(d.a,d.b);
+    const pctStr = pct!=null ? ' '+pct+'%' : '';
+    html += `<span class="hs-pill ${cls}"><span class="hs-dot"></span>${label}${pctStr}</span>`;
+  });
+  strip.innerHTML = html;
+}
+
+// ─── PERIOD SUMMARY BAND ────────────────────────────────────────────────────
+// Fully dynamic: reflects exactly the selected months.
+// Title & comparison copy adapts to how many months are selected.
+function buildR3Band(months){
+  const n = months.length;
+  const sum  = (ms, key) => ms.reduce((s,m)=>{ const v=D[m][key]?.a; return v!=null?s+v:s; }, 0);
+  const bsum = (ms, key) => ms.reduce((s,m)=>{ const v=D[m][key]?.b; return v!=null?s+v:s; }, 0);
+
+  // For comparison: find the equivalent prior window (same length, immediately before)
+  const allIdx   = months.map(m => MONTHS.indexOf(m));
+  const minIdx   = Math.min(...allIdx);
+  const priorMos = MONTHS.slice(Math.max(0, minIdx - n), minIdx);
+
+  const metrics = [
+    {key:'leads',       label:'Leads',        fmt:fShort},
+    {key:'enrollments', label:'Enrollments',   fmt:fN},
+    {key:'bookings',    label:'Bookings',      fmt:fK},
+    {key:'starts',      label:'Starts',        fmt:fN},
+    {key:'efs',         label:'Enr for Start', fmt:fN},
+    {key:'classStarts', label:'Class Starts',  fmt:fN},
+  ];
+
+  // Title logic
+  let bandTitle, rangeLabel;
+  if (n === 1) {
+    bandTitle  = 'Monthly Summary';
+    rangeLabel = months[0];
+  } else if (n <= 3) {
+    bandTitle  = n+'-Month Summary';
+    rangeLabel = months[0] + ' – ' + months[n-1];
+  } else {
+    bandTitle  = 'Period Summary — '+n+' Months';
+    rangeLabel = months[0] + ' – ' + months[n-1];
+  }
+
+  // Comparison label
+  const cmpLabel = priorMos.length
+    ? 'vs prior '+priorMos.length+'mo'
+    : '';
+
+  let items = metrics.map(({key, label, fmt}) => {
+    const a  = sum(months, key);
+    const b  = bsum(months, key);
+    const pp = priorMos.length ? sum(priorMos, key) : null;
+    const dir   = pp!=null ? (a>pp?'up':a<pp?'dn':'fl') : 'fl';
+    const arrow = dir==='up'?'▲':dir==='dn'?'▼':'—';
+    const pctB  = b ? Math.round((a/b)*100) : null;
+    const diff  = pp!=null ? Math.abs(a-pp) : null;
+    return `<div class="r3-item">
+      <div class="r3-lbl">${label}</div>
+      <div class="r3-val">${fmt(a)}</div>
+      <div class="r3-vs ${dir}">${diff!=null ? arrow+' '+fmt(diff)+' '+cmpLabel : '—'}</div>
+      <div class="r3-sub">${pctB!=null ? pctB+'% of budget' : ''}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="r3-band anim">
+    <div class="r3-head">
+      <span class="r3-title">${bandTitle}</span>
+      <span class="r3-range">${rangeLabel}</span>
+    </div>
+    <div class="r3-grid">${items}</div>
+  </div>`;
+}
+
+// ─── KPI CARD ────────────────────────────────────────────────────────────────
+// RATE_KEYS: averaged across period. All others: summed.
+const RATE_KEYS = new Set(['lte','ets','capUtil','completion','etc','studPerClass','asp']);
+
+function periodAgg(months, key) {
+  const isRate = RATE_KEYS.has(key);
+  const aVals = months.map(mo => D[mo][key]?.a).filter(v => v != null);
+  const bVals = months.map(mo => D[mo][key]?.b).filter(v => v != null);
+  const pyVals = months.map(mo => D[mo][key]?.py).filter(v => v != null);
+  if (!aVals.length) return { a: null, b: null, py: null };
+  const agg = arr => isRate
+    ? arr.reduce((s, v) => s + v, 0) / arr.length
+    : arr.reduce((s, v) => s + v, 0);
+  return {
+    a:  agg(aVals),
+    b:  bVals.length ? agg(bVals) : null,
+    py: pyVals.length ? agg(pyVals) : null,
+    isRate,
+    n: months.length
+  };
+}
+
+function mkCard(m, key, label, fmt, hi=true, months){
+  const isMulti = months.length > 1;
+  const agg = periodAgg(months, key);
+  if (agg.a == null) return `<div class="kcard cb anim"><div class="klabel">${label}</div><div class="kvalue" style="font-size:18px;color:var(--muted2)">—</div></div>`;
+
+  const cc  = colClass(agg.a, agg.b, hi);
+  const pct = pctVsBud(agg.a, agg.b);
+  const dir = dirLabel(agg.a, agg.b, hi);
+  const sc  = sparkColor(cc);
+  const spark = months.map(mo => D[mo][key]?.a ?? null);
+  const sparkId = 'sp_' + key + '_' + months.join('').replace(/\s/g,'');
+  setTimeout(() => { const c = document.getElementById(sparkId); if (c) drawSparkline(c, spark, sc); }, 80);
+
+  const aggNote = isMulti
+    ? `<div style="font-size:9px;color:var(--muted2);margin-top:1px">${agg.isRate ? 'avg' : 'sum'} · ${months.length} months</div>`
+    : '';
+
+  return `<div class="kcard ${cc} anim">
+    <div class="klabel">${label}</div>
+    <div class="kcard-top">
+      <div>
+        <div class="kvalue">${fmt(agg.a)}</div>
+        <div class="kdelta ${dir}">${dir==='up'?'▲':dir==='dn'?'▼':'—'} ${vsText(agg.a, agg.b, fmt)} vs bgt</div>
+        <div class="kbud">Bgt: ${agg.b != null ? fmt(agg.b) : '—'}</div>
+        ${aggNote}
+      </div>
+      <canvas id="${sparkId}" class="sparkline-wrap"></canvas>
+    </div>
+    ${pct != null ? `<div class="kprog"><div class="kprog-fill ${cc}" style="width:${Math.min(pct,100)}%"></div></div>` : ''}
+  </div>`;
+}
+
+// ─── FUNNEL VIZ ──────────────────────────────────────────────────────────────
+// When multiple months selected: sum actuals, sum budgets across the period
+function mkFunnel(m, months){
+  const stages = [
+    {key:'leads', label:'Leads', color:'#1565C0', fmt:fN},
+    {key:'enrollments', label:'Enrollments', color:'#1976D2', fmt:fN},
+    {key:'efs', label:'Enrolls for Start', color:'#0288D1', fmt:fN},
+    {key:'starts', label:'Student Starts', color:'#0097A7', fmt:fN},
+  ];
+  const convs = [
+    {label:'Lead-to-Enroll', key:'lte', fmt:fP},
+    {label:'Enroll-to-Start', key:'ets', fmt:fP},
+  ];
+  const isMulti = months.length > 1;
+  // For multi-month: sum volumes, average rates
+  const sumA = key => months.reduce((s,mo)=>{ const v=D[mo][key]?.a; return v!=null?s+v:s; },0);
+  const sumB = key => months.reduce((s,mo)=>{ const v=D[mo][key]?.b; return v!=null?s+v:s; },0);
+  const avgA = key => { const vs=months.map(mo=>D[mo][key]?.a).filter(v=>v!=null); return vs.length ? vs.reduce((a,b)=>a+b)/vs.length : null; };
+  const avgB = key => { const vs=months.map(mo=>D[mo][key]?.b).filter(v=>v!=null); return vs.length ? vs.reduce((a,b)=>a+b)/vs.length : null; };
+
+  const getA = (key, isRate) => isMulti ? (isRate ? avgA(key) : sumA(key)) : D[m][key]?.a;
+  const getB = (key, isRate) => isMulti ? (isRate ? avgB(key) : sumB(key)) : D[m][key]?.b;
+
+  const leadA = getA('leads', false) || 1;
+  let html = '';
+  stages.forEach((s,i) => {
+    const a = getA(s.key, false); const b = getB(s.key, false);
+    if(a==null) return;
+    const barW = Math.round((a/leadA)*100);
+    const budW = b ? Math.round((b/leadA)*100) : null;
+    const col = colClass(a, b, true);
+    html += `<div class="funnel-stage">
+      <div class="funnel-stage-head">
+        <span class="funnel-stage-name">${s.label}</span>
+        <div class="funnel-stage-nums">
+          <span class="funnel-stage-val" style="color:${col==='cg'?'#2e7d32':col==='ca'?'#e65100':col==='cr'?'#c62828':'#071e3d'}">${s.fmt(a)}</span>
+          <span class="funnel-stage-bud">/ ${b!=null?s.fmt(b):'—'} bgt ${b?'('+Math.round((a/b)*100)+'%)':''}</span>
+        </div>
+      </div>
+      <div class="funnel-bar-track" style="position:relative;">
+        ${budW!=null?`<div style="position:absolute;top:0;left:0;height:100%;width:${Math.min(budW,100)}%;background:rgba(21,101,192,0.18);border-radius:5px;"></div>`:''}
+        <div class="funnel-bar-fill" style="width:${Math.min(barW,100)}%;background:${s.color};position:relative;z-index:1"></div>
+      </div>
+    </div>`;
+    if(i < convs.length){
+      const ca = getA(convs[i].key, true); const cb = getB(convs[i].key, true);
+      if(ca==null) return;
+      const cdir = dirLabel(ca,cb,true);
+      html += `<div class="funnel-conv">
+        <span class="funnel-conv-arrow">↓</span>
+        <span class="funnel-conv-label">${convs[i].label}</span>
+        <span class="funnel-conv-val" style="color:${cdir==='up'?'#2e7d32':cdir==='dn'?'#c62828':'#1565C0'}">${convs[i].fmt(ca)}</span>
+        <span class="funnel-conv-bud">bgt ${cb!=null?convs[i].fmt(cb):'—'}</span>
+      </div>`;
+    }
+  });
+  const title = isMulti ? `Enrollment Funnel — ${months[0]} – ${months[months.length-1]}` : `Enrollment Funnel — ${m}`;
+  const note = isMulti ? `<div style="font-size:9px;color:var(--muted2);margin-bottom:10px">Volumes summed · rates averaged · light bar = budget</div>` : '';
+  return `<div class="funnel-card anim"><div class="funnel-title">${title}</div>${note}${html}</div>`;
+}
+
+// ─── ETC / COMPLETION CALLOUT ─────────────────────────────────────────────────
+// months = selected period; latest month drives the headline numbers
+function mkOutcomeCallout(m, months){
+  // Avg across selected period if multi-month
+  const avgA = key => { const vs=months.map(mo=>D[mo][key]?.a).filter(v=>v!=null); return vs.length ? vs.reduce((a,b)=>a+b)/vs.length : null; };
+  const avgB = key => { const vs=months.map(mo=>D[mo][key]?.b).filter(v=>v!=null); return vs.length ? vs.reduce((a,b)=>a+b)/vs.length : null; };
+  const isMulti = months.length > 1;
+  const compA = isMulti ? avgA('completion') : D[m]['completion']?.a;
+  const compB = isMulti ? avgB('completion') : D[m]['completion']?.b;
+  const etcA  = isMulti ? avgA('etc')        : D[m]['etc']?.a;
+  const etcB  = isMulti ? avgB('etc')        : D[m]['etc']?.b;
+  const compPct = pctVsBud(compA, compB);
+  const etcPct  = pctVsBud(etcA,  etcB);
+  const compOk  = compPct!=null ? (compPct>=95?'ok':compPct>=85?'warn':'bad') : 'warn';
+  const etcOk   = etcPct!=null  ? (etcPct>=95?'ok':etcPct>=85?'warn':'bad')  : 'warn';
+  const overallOk = (compOk==='bad'||etcOk==='bad') ? 'At Risk' : (compOk==='warn'||etcOk==='warn') ? 'Watch' : 'On Track';
+  const alertCls = overallOk==='At Risk'?'warn':overallOk==='Watch'?'warn':'ok';
+  const compSparkId = 'sp_oc_comp'; const etcSparkId = 'sp_oc_etc';
+  // Only render sparklines when more than one month is selected
+  if (isMulti) {
+    setTimeout(()=>{
+      const c1=document.getElementById(compSparkId); const c2=document.getElementById(etcSparkId);
+      if(c1) drawSparkline(c1, months.map(mo=>D[mo]['completion']?.a??null), '#2e7d32');
+      if(c2) drawSparkline(c2, months.map(mo=>D[mo]['etc']?.a??null), '#e65100');
+    },80);
+  }
+  const trendLabel = months.length+'-month trend';
+  const subLabel = isMulti ? `<div style="font-size:9px;color:var(--muted2);margin-bottom:4px">Avg across ${months.length} selected months</div>` : '';
+  const trendBlock = (sparkId) => isMulti
+    ? `<div class="oc-trend"><div class="oc-trend-label">${trendLabel}</div><canvas id="${sparkId}" class="oc-sparkbig"></canvas></div>`
+    : '';
+  return `<div class="outcome-callout anim">
+    <div class="oc-header">
+      <span class="oc-title">Student Outcomes — Completion &amp; ETC</span>
+      <span class="oc-alert ${alertCls}">${overallOk}</span>
+    </div>
+    ${subLabel}
+    <div class="oc-grid">
+      <div class="oc-metric">
+        <div class="oc-m-label">Completion Rate</div>
+        <div class="oc-m-val ${compOk}">${compA!=null?fP(compA):'—'}</div>
+        <div class="oc-m-row">Budget <span>${compB!=null?fP(compB):'—'}</span> &nbsp;|&nbsp; Attainment <span>${compPct!=null?compPct+'%':'—'}</span></div>
+
+        ${trendBlock(compSparkId)}
+      </div>
+      <div class="oc-metric">
+        <div class="oc-m-label">Enroll-to-Completion (ETC)</div>
+        <div class="oc-m-val ${etcOk}">${etcA!=null?fP(etcA):'—'}</div>
+        <div class="oc-m-row">Budget <span>${etcB!=null?fP(etcB):'—'}</span> &nbsp;|&nbsp; Attainment <span>${etcPct!=null?etcPct+'%':'—'}</span></div>
+
+        ${trendBlock(etcSparkId)}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── SINGLE VIEW ─────────────────────────────────────────────────────────────
+function renderSingle(months){
+  const m = months[months.length-1];
+  const periodLabel = months.length === 1 ? m : months[0] + ' – ' + m;
+  return `
+    ${buildR3Band(months)}
+    <div class="sec"><div class="sec-line"></div><div class="sec-title">Enrollment Funnel &amp; Outcomes — ${periodLabel}</div><div class="sec-line"></div></div>
+    <div class="funnel-row">
+      ${mkFunnel(m, months)}
+      ${mkOutcomeCallout(m, months)}
+    </div>
+    <div class="sec"><div class="sec-line"></div><div class="sec-title">Marketing &amp; Sales — ${periodLabel}</div><div class="sec-line"></div></div>
+    <div class="kgrid g4">
+      ${mkCard(m,'leads','Leads',fN,true,months)}
+      ${mkCard(m,'lte','Lead-to-Enroll %',fP,true,months)}
+      ${mkCard(m,'enrollments','Enrollments',fN,true,months)}
+      ${mkCard(m,'bookings','Bookings ($k)',fK,true,months)}
+    </div>
+    <div class="kgrid g4" style="margin-top:9px">
+      ${mkCard(m,'asp','Avg Sale Price',fD,true,months)}
+      ${mkCard(m,'efs','Enrolls for Start',fN,true,months)}
+      ${mkCard(m,'ets','Enroll-to-Start %',fP,true,months)}
+      ${mkCard(m,'starts','Student Starts',fN,true,months)}
+    </div>
+    <div class="sec"><div class="sec-line"></div><div class="sec-title">Operations — ${periodLabel}</div><div class="sec-line"></div></div>
+    <div class="kgrid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:9px">
+      ${mkCard(m,'capacity','Capacity',fN,true,months)}
+      ${mkCard(m,'classStarts','Class Starts',fN,true,months)}
+      ${mkCard(m,'studPerClass','Students / Class',v=>fN(v,1),true,months)}
+    </div>
+    <div class="kgrid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:9px">
+      ${mkCard(m,'capUtil','Cap Utilization %',fP,true,months)}
+      ${mkCard(m,'completion','Completion Rate',fP,true,months)}
+      ${mkCard(m,'etc','Enroll-to-Completion %',fP,true,months)}
+    </div>
+    <div class="sec"><div class="sec-line"></div><div class="sec-title">Budget Attainment — ${periodLabel}</div><div class="sec-line"></div></div>
+    <div class="ccards cc2">
+      <div class="ccard"><div class="ccard-title">Sales metrics vs budget</div><div class="ccard-sub">Actual as % of budget · green ≥95%, amber ≥80%, red &lt;80% · dashed line = 100%</div><div style="position:relative;height:200px"><canvas id="budSales"></canvas></div></div>
+      <div class="ccard"><div class="ccard-title">Ops metrics vs budget</div><div class="ccard-sub">Actual as % of budget · dashed line = 100% target</div><div style="position:relative;height:200px"><canvas id="budOps"></canvas></div></div>
+    </div>
+  `;
+}
+
+// ─── TREND VIEW ───────────────────────────────────────────────────────────────
+function renderTrend(months){
+  const sumLeads = months.reduce((s,m)=>s+(D[m].leads?.a||0),0);
+  const sumEnroll = months.reduce((s,m)=>s+(D[m].enrollments?.a||0),0);
+  const sumStarts = months.reduce((s,m)=>s+(D[m].starts?.a||0),0);
+  const sumBook = months.reduce((s,m)=>s+(D[m].bookings?.a||0),0);
+  const avgEtc = months.map(m=>D[m].etc?.a).filter(v=>v!=null);
+  const etcAvg = avgEtc.length ? (avgEtc.reduce((a,b)=>a+b)/avgEtc.length).toFixed(1) : '—';
+  return `
+    <div class="r3-band anim" style="margin-bottom:1.25rem">
+      <div class="r3-head"><span class="r3-title">Period Totals — ${months.length} months selected</span></div>
+      <div class="r3-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="r3-item"><div class="r3-lbl">Total Leads</div><div class="r3-val">${fShort(sumLeads)}</div><div class="r3-sub">avg ${fN(Math.round(sumLeads/months.length))}/mo</div></div>
+        <div class="r3-item"><div class="r3-lbl">Total Enrollments</div><div class="r3-val">${fN(sumEnroll)}</div><div class="r3-sub">avg ${fN(Math.round(sumEnroll/months.length))}/mo</div></div>
+        <div class="r3-item"><div class="r3-lbl">Total Starts</div><div class="r3-val">${fN(sumStarts)}</div><div class="r3-sub">avg ${fN(Math.round(sumStarts/months.length))}/mo</div></div>
+        <div class="r3-item"><div class="r3-lbl">Total Bookings</div><div class="r3-val">${fK(sumBook)}</div><div class="r3-sub">avg ${fK(Math.round(sumBook/months.length))}/mo</div></div>
+        <div class="r3-item"><div class="r3-lbl">Avg ETC Rate</div><div class="r3-val">${etcAvg}%</div><div class="r3-sub">across ${months.length} months</div></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-line"></div><div class="sec-title">Volume Trends</div><div class="sec-line"></div></div>
+    <div class="ccards cc2">
+      <div class="ccard">
+        <div class="ccard-title">Leads, Enrollments &amp; Starts</div>
+        <div class="clegend"><span class="leg"><span class="leg-sq" style="background:#1565C0"></span>Leads actual</span><span class="leg"><span class="leg-sq" style="background:#b3d4f5"></span>Leads budget</span><span class="leg"><span class="leg-sq" style="background:#29B6F6"></span>Enrollments</span><span class="leg"><span class="leg-sq" style="background:#1b5e20"></span>Starts</span></div>
+        <div style="position:relative;height:220px"><canvas id="tFunnel"></canvas></div>
+      </div>
+      <div class="ccard">
+        <div class="ccard-title">Bookings &amp; Avg Sale Price</div>
+        <div class="clegend"><span class="leg"><span class="leg-sq" style="background:#1565C0"></span>Bookings actual</span><span class="leg"><span class="leg-sq" style="background:#b3d4f5"></span>Bookings budget</span><span class="leg"><span class="leg-sq" style="background:#f57c00"></span>ASP actual</span><span class="leg"><span class="leg-sq" style="background:#ffe0b2;border:1px dashed #f57c00"></span>ASP budget</span></div>
+        <div style="position:relative;height:220px"><canvas id="tBookings"></canvas></div>
+      </div>
+    </div>
+    <div class="sec"><div class="sec-line"></div><div class="sec-title">Conversion Rates</div><div class="sec-line"></div></div>
+    <div class="ccards cc3">
+      <div class="ccard"><div class="ccard-title">Lead-to-Enroll %</div><div class="clegend"><span class="leg"><span class="leg-sq" style="background:#1565C0"></span>Actual</span><span class="leg"><span class="leg-sq" style="background:#b3d4f5;border:1px dashed #1565C0"></span>Budget</span></div><div style="position:relative;height:160px"><canvas id="tLte"></canvas></div></div>
+      <div class="ccard"><div class="ccard-title">Enroll-to-Start %</div><div class="clegend"><span class="leg"><span class="leg-sq" style="background:#29B6F6"></span>Actual</span><span class="leg"><span class="leg-sq" style="background:#b3e0f9;border:1px dashed #29B6F6"></span>Budget</span></div><div style="position:relative;height:160px"><canvas id="tEts"></canvas></div></div>
+      <div class="ccard"><div class="ccard-title">Completion &amp; ETC %</div><div class="clegend"><span class="leg"><span class="leg-sq" style="background:#2e7d32"></span>Completion</span><span class="leg"><span class="leg-sq" style="background:#f57c00"></span>ETC</span><span class="leg"><span class="leg-sq" style="background:#b3d4f5;border:1px dashed #666"></span>Budget lines</span></div><div style="position:relative;height:160px"><canvas id="tOutcomes"></canvas></div></div>
+    </div>
+    <div class="sec"><div class="sec-line"></div><div class="sec-title">Operations Trends</div><div class="sec-line"></div></div>
+    <div class="ccards cc3">
+      <div class="ccard"><div class="ccard-title">Capacity Utilization %</div><div class="clegend"><span class="leg"><span class="leg-sq" style="background:#1565C0"></span>Actual</span><span class="leg"><span class="leg-sq" style="background:#b3d4f5;border:1px dashed #1565C0"></span>Budget</span></div><div style="position:relative;height:148px"><canvas id="tCapUtil"></canvas></div></div>
+      <div class="ccard"><div class="ccard-title">Class Starts</div><div class="clegend"><span class="leg"><span class="leg-sq" style="background:#1565C0"></span>Actual</span><span class="leg"><span class="leg-sq" style="background:#b3d4f5"></span>Budget</span></div><div style="position:relative;height:148px"><canvas id="tClassStarts"></canvas></div></div>
+      <div class="ccard"><div class="ccard-title">Students per Class Start</div><div style="position:relative;height:160px"><canvas id="tSpc"></canvas></div></div>
+    </div>
+  `;
+}
+
+// ─── TABLE VIEW ───────────────────────────────────────────────────────────────
+function renderTable(months){
+  const mkTd = (m,key,fmt,hi=true) => {
+    const d=D[m][key]; if(!d||d.a==null) return `<td class="cell-na">—</td>`;
+    const cc=colStr(d.a,d.b,hi);
+    const pct=pctVsBud(d.a,d.b);
+    const dir=dirLabel(d.a,d.b,hi);
+    const bgCls = cc==='green'?'tc-g':cc==='amber'?'tc-a':cc==='red'?'tc-r':'';
+    const badge = pct!=null ? (cc==='green'?`<span class="badge-g">${pct}%</span>`:cc==='amber'?`<span class="badge-a">${pct}%</span>`:`<span class="badge-r">${pct}%</span>`) : '';
+    return `<td class="${bgCls}"><span class="cell-num">${fmt(d.a)}</span>${badge}</td>`;
+  };
+  const ROWS = [
+    {section:'MARKETING & SALES'},
+    {label:'Leads',key:'leads',fmt:fN},
+    {label:'Lead-to-Enroll %',key:'lte',fmt:fP},
+    {label:'Enrollments',key:'enrollments',fmt:fN},
+    {label:'Bookings ($k)',key:'bookings',fmt:fK},
+    {label:'Avg Sale Price',key:'asp',fmt:fD},
+    {label:'Enrolls for Start',key:'efs',fmt:fN},
+    {label:'Enroll-to-Start %',key:'ets',fmt:fP},
+    {label:'Student Starts',key:'starts',fmt:fN},
+    {section:'OPERATIONS'},
+    {label:'Active Schools',key:'activeSchools',fmt:fN},
+    {label:'Class Weeks',key:'classWeeks',fmt:fN},
+    {label:'Capacity',key:'capacity',fmt:fN},
+    {label:'Class Starts',key:'classStarts',fmt:fN},
+    {label:'Students / Class',key:'studPerClass',fmt:v=>fN(v,1)},
+    {label:'Cap Utilization %',key:'capUtil',fmt:fP},
+    {label:'Completion Rate',key:'completion',fmt:fP},
+    {label:'ETC %',key:'etc',fmt:fP},
+  ];
+  const hdr = months.map(m=>`<th>${m.replace(' ','<br>')}</th>`).join('');
+  const body = ROWS.map(r => {
+    if(r.section) return `<tr class="sec-row"><td colspan="${months.length+1}">${r.section}</td></tr>`;
+    return `<tr><td>${r.label}</td>${months.map(m=>mkTd(m,r.key,r.fmt)).join('')}</tr>`;
+  }).join('');
+  return `
+    <div class="sec"><div class="sec-line"></div><div class="sec-title">Full Scorecard — All Metrics &amp; Months</div><div class="sec-line"></div></div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Cell color = % of budget attainment &nbsp;·&nbsp; <span style="background:#e8f5e9;color:#1b5e20;padding:1px 5px;border-radius:3px">green</span> ≥95% &nbsp; <span style="background:#fff3e0;color:#e65100;padding:1px 5px;border-radius:3px">amber</span> ≥80% &nbsp; <span style="background:#ffebee;color:#c62828;padding:1px 5px;border-radius:3px">red</span> &lt;80%</div>
+    <div class="twrap"><div class="tscroll"><table class="sc"><thead><tr><th>Metric</th>${hdr}</tr></thead><tbody>${body}</tbody></table></div></div>
+  `;
+}
+
+// ─── CHART RENDERING ─────────────────────────────────────────────────────────
+function renderCharts(months){
+  const act = key => months.map(m => D[m][key]?.a ?? null);
+  const bud = key => months.map(m => D[m][key]?.b ?? null);
+  const barCols = months.map((m,i) => i===months.length-1?'#1565C0':'#90CAF9');
+  const lo = (mn,mx,pct) => ({ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:'#607d9a'}},
+             y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#607d9a',callback:v=>pct?v+'%':v.toLocaleString()}, ...(mn!=null?{min:mn}:{}), ...(mx!=null?{max:mx}:{}) } } });
+
+  if(view==='single'){
+    const m = months[months.length-1];
+    // Use periodAgg for all aggregation — consistent with cards
+    const isMulti = months.length > 1;
+    const getA = (key) => periodAgg(months, key).a;
+    const getB = (key) => periodAgg(months, key).b;
+
+    const allSales = [
+      {k:'leads',l:'Leads'},{k:'lte',l:'LTE %'},{k:'enrollments',l:'Enrollments'},
+      {k:'bookings',l:'Bookings'},{k:'asp',l:'ASP'},{k:'efs',l:'Enr/Start'},
+      {k:'ets',l:'ETS %'},{k:'starts',l:'Starts'}
+    ];
+    const allOps = [
+      {k:'capacity',l:'Capacity'},{k:'classStarts',l:'Cls Starts'},
+      {k:'studPerClass',l:'Stu/Class'},{k:'capUtil',l:'Cap Util %'},
+      {k:'completion',l:'Completion'},{k:'etc',l:'ETC %'}
+    ];
+
+    const buildPctData = (pairs) => {
+      const filtered = pairs.filter(({k})=>{ const a=getA(k); const b=getB(k); return a!=null&&b!=null&&b>0; });
+      return {
+        labels: filtered.map(({l})=>l),
+        vals:   filtered.map(({k})=>Math.round((getA(k)/getB(k))*100)),
+        colors: filtered.map(({k})=>{ const v=Math.round((getA(k)/getB(k))*100); return v>=95?'#2e7d32':v>=80?'#e65100':'#c62828'; })
+      };
+    };
+
+    const sd = buildPctData(allSales);
+    const od = buildPctData(allOps);
+
+    const refDataset = (n) => ({
+      type:'line', data: Array(n).fill(100),
+      borderColor:'rgba(0,0,0,0.2)', borderDash:[5,4], borderWidth:1.5,
+      pointRadius:0, label:'100% target', fill:false, tension:0
+    });
+
+    const attainOpts = {...lo(0,135,false), plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.datasetIndex===0?c.raw+'% of budget':'100% budget target'}}}};
+
+    const c1=new Chart(document.getElementById('budSales'),{type:'bar',data:{labels:sd.labels,datasets:[{data:sd.vals,backgroundColor:sd.colors,borderRadius:5},refDataset(sd.labels.length)]},options:attainOpts});
+    const c2=new Chart(document.getElementById('budOps'),  {type:'bar',data:{labels:od.labels,datasets:[{data:od.vals,backgroundColor:od.colors,borderRadius:5},refDataset(od.labels.length)]},options:attainOpts});
+    charts.push(c1,c2); return;
+  }
+
+  if(view==='trend'){
+    const c1=new Chart(document.getElementById('tFunnel'),{type:'bar',data:{labels:months,datasets:[
+      {label:'Leads budget',data:bud('leads'),backgroundColor:'rgba(21,101,192,0.18)',borderRadius:2},
+      {label:'Leads actual',data:act('leads'),backgroundColor:'#1565C0',borderRadius:2},
+      {type:'line',label:'Enrollments',data:act('enrollments'),borderColor:'#29B6F6',backgroundColor:'transparent',tension:0.3,pointRadius:3,yAxisID:'y2'},
+      {type:'line',label:'Starts',data:act('starts'),borderColor:'#1b5e20',backgroundColor:'transparent',tension:0.3,pointRadius:3,yAxisID:'y2'},
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#607d9a'}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#607d9a'}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},color:'#607d9a'}}}}});
+    const c2=new Chart(document.getElementById('tBookings'),{type:'bar',data:{labels:months,datasets:[
+      {label:'Bookings budget',data:bud('bookings'),backgroundColor:'rgba(21,101,192,0.18)',borderRadius:3},
+      {label:'Bookings actual',data:act('bookings'),backgroundColor:'#1565C0',borderRadius:3},
+      {type:'line',label:'ASP budget',data:bud('asp'),borderColor:'rgba(245,124,0,0.4)',backgroundColor:'transparent',borderDash:[4,3],tension:0.3,pointRadius:2,borderWidth:1.5,yAxisID:'y2'},
+      {type:'line',label:'ASP actual',data:act('asp'),borderColor:'#f57c00',backgroundColor:'transparent',tension:0.3,pointRadius:3,borderWidth:2,yAxisID:'y2'},
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#607d9a'}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#607d9a'}},y2:{position:'right',grid:{display:false},ticks:{font:{size:10},color:'#607d9a'}}}}});
+    const mkL=(id,aKey,bKey,ac,bc,mn,mx,pct)=>new Chart(document.getElementById(id),{type:'line',data:{labels:months,datasets:[
+      {label:'Budget',data:bud(bKey||aKey),borderColor:bc,backgroundColor:'transparent',borderDash:[4,3],tension:0.3,pointRadius:2,borderWidth:1.5},
+      {label:'Actual',data:act(aKey),borderColor:ac,backgroundColor:'transparent',tension:0.3,pointRadius:3,borderWidth:2},
+    ]},options:lo(mn,mx,pct)});
+    const c3=mkL('tLte','lte',null,'#1565C0','rgba(21,101,192,0.35)',5,18,true);
+    const c4=mkL('tEts','ets',null,'#29B6F6','rgba(41,182,246,0.35)',75,100,true);
+    const c5=new Chart(document.getElementById('tOutcomes'),{type:'line',data:{labels:months,datasets:[
+      {label:'Comp budget',data:bud('completion'),borderColor:'rgba(46,125,50,0.3)',backgroundColor:'transparent',borderDash:[4,3],tension:0.3,pointRadius:2,borderWidth:1.5},
+      {label:'ETC budget', data:bud('etc'),       borderColor:'rgba(230,81,0,0.3)', backgroundColor:'transparent',borderDash:[4,3],tension:0.3,pointRadius:2,borderWidth:1.5},
+      {label:'Completion',data:act('completion'),borderColor:'#2e7d32',backgroundColor:'transparent',tension:0.3,pointRadius:3,borderWidth:2},
+      {label:'ETC',       data:act('etc'),       borderColor:'#e65100',backgroundColor:'transparent',tension:0.3,pointRadius:3,borderWidth:2},
+    ]},options:lo(60,100,true)});
+    const c6=new Chart(document.getElementById('tCapUtil'),{type:'line',data:{labels:months,datasets:[
+      {label:'Budget',data:bud('capUtil'),borderColor:'rgba(21,101,192,0.35)',backgroundColor:'transparent',borderDash:[4,3],tension:0.3,pointRadius:2,borderWidth:1.5},
+      {label:'Actual',data:act('capUtil'),borderColor:'#1565C0',backgroundColor:'rgba(21,101,192,0.07)',fill:true,tension:0.3,pointRadius:3,borderWidth:2},
+    ]},options:lo(0,85,true)});
+    const c7=new Chart(document.getElementById('tClassStarts'),{type:'bar',data:{labels:months,datasets:[
+      {label:'Budget',data:bud('classStarts'),backgroundColor:'rgba(21,101,192,0.2)',borderRadius:3},
+      {label:'Actual',data:act('classStarts'),backgroundColor:'#1565C0',borderRadius:3},
+    ]},options:{...lo(null,null,false),plugins:{legend:{display:false}}}});
+    const c8=new Chart(document.getElementById('tSpc'),{type:'line',data:{labels:months,datasets:[
+      {label:'Budget',data:bud('studPerClass'),borderColor:'rgba(21,101,192,0.35)',backgroundColor:'transparent',borderDash:[4,3],tension:0.3,pointRadius:2,borderWidth:1.5},
+      {label:'Actual',data:act('studPerClass'),borderColor:'#1565C0',backgroundColor:'transparent',tension:0.3,pointRadius:3,borderWidth:2},
+    ]},options:lo(null,null,false)});
+    charts.push(c1,c2,c3,c4,c5,c6,c7,c8);
+  }
+}
+
+// ─── MAIN RENDER ─────────────────────────────────────────────────────────────
+function render(){
+  charts.forEach(c=>{try{c.destroy();}catch(e){}});
+  charts=[];
+  const months = sel.length ? sel : [MONTHS[MONTHS.length-1]];
+  const m = months[months.length-1];
+  document.getElementById('hperiod').textContent = months.length===1 ? m : months[0]+'  →  '+m;
+  buildHealthStrip(months);
+  const dash = document.getElementById('dash');
+  dash.innerHTML = view==='single' ? renderSingle(months) : view==='trend' ? renderTrend(months) : renderTable(months);
+  requestAnimationFrame(()=>renderCharts(months));
+}
+
+// ─── CONTROLS ────────────────────────────────────────────────────────────────
+function buildToggles(){
+  document.getElementById('mtoggles').innerHTML = MONTHS.map((m,i)=>{
+    const s=sel.includes(m); const lat=i===MONTHS.length-1;
+    return `<button class="mtoggle${s?' sel':''}${lat?' latest':''}" onclick="toggleM('${m}')">${m.replace(' ',' ')}</button>`;
+  }).join('');
+}
+function toggleM(m){
+  if(sel.includes(m)){ if(sel.length>1) sel=sel.filter(x=>x!==m); }
+  else { sel.push(m); sel.sort((a,b)=>MONTHS.indexOf(a)-MONTHS.indexOf(b)); }
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
+  buildToggles(); render();
+}
+function setPreset(p,btn){
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(p==='latest')  sel=[MONTHS[MONTHS.length-1]];
+  else if(p==='q1fy26') sel=MONTHS.filter(m=>m.includes('2026'));
+  else if(p==='h2fy25') sel=MONTHS.filter(m=>['Jul 2025','Aug 2025','Sep 2025','Oct 2025','Nov 2025','Dec 2025'].includes(m));
+  else if(p==='ytd')    sel=MONTHS.filter(m=>m.includes('2026'));
+  else sel=[...MONTHS];
+  buildToggles(); render();
+}
+function setView(v){
+  view=v;
+  ['vSingle','vTrend','vTable'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById(v==='single'?'vSingle':v==='trend'?'vTrend':'vTable').classList.add('active');
+  render();
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+buildToggles();
+render();
+</script>
+</body>
+</html>
