@@ -203,7 +203,7 @@ table.sc { width: 100%; border-collapse: collapse; font-size: 11px; }
   </div>
   <div class="hright">
     <span class="hperiod" id="hperiod">Feb 2026</span>
-    <span class="hupdated">Apr 2025 – Mar 2026</span>
+    <span class="hupdated">Apr 2025 – Apr 2026</span>
   </div>
 </div>
 
@@ -246,7 +246,7 @@ table.sc { width: 100%; border-collapse: collapse; font-size: 11px; }
 
 <script>
 // ─── DATA ────────────────────────────────────────────────────────────────────
-const MONTHS = ['Apr 2025','May 2025','Jun 2025','Jul 2025','Aug 2025','Sep 2025','Oct 2025','Nov 2025','Dec 2025','Jan 2026','Feb 2026','Mar 2026'];
+const MONTHS = ['Apr 2025','May 2025','Jun 2025','Jul 2025','Aug 2025','Sep 2025','Oct 2025','Nov 2025','Dec 2025','Jan 2026','Feb 2026','Mar 2026','Apr 2026'];
 
 // D[month][metric] = {a:actual, b:budget, py:priorYear}
 const D = {
@@ -260,6 +260,7 @@ const D = {
   'Nov 2025':{ leads:{a:4470,b:3869,py:null}, lte:{a:10.0,b:12.0,py:null}, enrollments:{a:449,b:424,py:null}, bookings:{a:1624,b:1841,py:null}, asp:{a:3617,b:3977,py:null}, efs:{a:370,b:457,py:null}, ets:{a:91.1,b:87.5,py:null}, starts:{a:337,b:400,py:null}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:775,b:1429,py:null}, classStarts:{a:41,b:81,py:null}, studPerClass:{a:8.2,b:4.9,py:null}, capUtil:{a:43.5,b:28.0,py:null}, completion:{a:86.8,b:90.2,py:null}, etc:{a:79.0,b:78.8,py:null} },
   'Dec 2025':{ leads:{a:4850,b:3877,py:null}, lte:{a:9.6,b:11.6,py:null}, enrollments:{a:468,b:450,py:null}, bookings:{a:1742,b:1779,py:null}, asp:{a:3722,b:3953,py:null}, efs:{a:304,b:535,py:null}, ets:{a:84.9,b:86.6,py:null}, starts:{a:278,b:462,py:null}, activeSchools:{a:null,b:null,py:null}, classWeeks:{a:null,b:null,py:null}, capacity:{a:807,b:1279,py:null}, classStarts:{a:46,b:73,py:null}, studPerClass:{a:8.3,b:6.9,py:null}, capUtil:{a:34.4,b:36.1,py:null}, completion:{a:88.8,b:90.9,py:null}, etc:{a:81.2,b:78.5,py:null} },
   'Jan 2026':{ leads:{a:11702,b:10837,py:7280}, lte:{a:9.9,b:10.4,py:10.2}, enrollments:{a:1163,b:1123,py:739}, bookings:{a:4464,b:3676,py:2822}, asp:{a:3839,b:3273,py:3693}, efs:{a:1597,b:1107,py:708}, ets:{a:86.8,b:90.6,py:84.9}, starts:{a:1386,b:1003,py:601}, activeSchools:{a:222,b:200,py:129}, classWeeks:{a:5,b:5,py:4}, capacity:{a:2859,b:2260,py:null}, classStarts:{a:158,b:172,py:87}, studPerClass:{a:6.9,b:5.8,py:6.9}, capUtil:{a:48.5,b:44.4,py:39.0}, completion:{a:84.8,b:89.8,py:82.8}, etc:{a:73.6,b:81.4,py:70.3} },
+  'Apr 2026':{ leads:{a:9605,b:8689,py:6156}, lte:{a:10.7,b:10.4,py:12.5}, enrollments:{a:1023,b:903,py:772}, bookings:{a:4157,b:2861,py:3030}, asp:{a:4064,b:3168,py:3925}, efs:{a:1261,b:1075,py:597}, ets:{a:87.1,b:90.4,py:90.1}, starts:{a:1098,b:975,py:538}, activeSchools:{a:254,b:248,py:151}, classWeeks:{a:4,b:3,py:4}, capacity:{a:2288,b:2167,py:null}, classStarts:{a:132,b:188,py:75}, studPerClass:{a:8.3,b:null,py:7.2}, capUtil:{a:48.0,b:45.0,py:39.2}, completion:{a:87.7,b:89.8,py:85.9}, etc:{a:76.3,b:81.5,py:77.4} },
   'Mar 2026':{ leads:{a:7663,b:8987,py:6471}, lte:{a:13.9,b:10.9,py:10.9}, enrollments:{a:1068,b:931,py:708}, bookings:{a:4285,b:2968,py:2786}, asp:{a:4012,b:3188,py:3934}, efs:{a:1039,b:978,py:927}, ets:{a:85.9,b:89.3,py:89.6}, starts:{a:893,b:876,py:855}, activeSchools:{a:252,b:238,py:151}, classWeeks:{a:4,b:4,py:4}, capacity:{a:2113,b:1696,py:null}, classStarts:{a:117,b:145,py:111}, studPerClass:{a:7.6,b:6.0,py:7.7}, capUtil:{a:42.3,b:51.7,py:42.6}, completion:{a:84.8,b:89.8,py:86.3}, etc:{a:72.9,b:80.5,py:79.6} },
   'Feb 2026':{ leads:{a:9210,b:9527,py:5555}, lte:{a:13.5,b:10.4,py:13.5}, enrollments:{a:1067,b:990,py:749}, bookings:{a:4117,b:3189,py:2898}, asp:{a:3858,b:3221,py:3869}, efs:{a:875,b:620,py:630}, ets:{a:86.2,b:90.6,py:90.0}, starts:{a:754,b:560,py:568}, activeSchools:{a:237,b:211,py:129}, classWeeks:{a:4,b:4,py:4}, capacity:{a:1546,b:1166,py:null}, classStarts:{a:87,b:93,py:70}, studPerClass:{a:8.7,b:6.0,py:8.1}, capUtil:{a:48.8,b:48.0,py:44.0}, completion:{a:84.8,b:89.8,py:78.9}, etc:{a:73.1,b:81.2,py:71.1} }
 };
